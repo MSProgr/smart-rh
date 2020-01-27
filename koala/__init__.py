@@ -47,6 +47,3 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = "warning"
 
 from koala import routes
-
-def get_manager():
-	return manager
