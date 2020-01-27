@@ -13,7 +13,7 @@ import os
 app = Flask(__name__)
 app.config["SECRET_KEY"] = 'ec469fe94afede3381e93e36bb4e432c'
 #app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:@localhost:3306/demande_drh"
-app.config["DATABASE_URL"] = os.environ.get('DATABASE_URL')
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
