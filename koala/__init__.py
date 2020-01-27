@@ -18,6 +18,8 @@ app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'diengdieng941@gmail.com'
 app.config['MAIL_PASSWORD'] = 'yybrulemjxrfdsiz'
 
+def get_app():
+	return app
 
 
 db = SQLAlchemy(app)

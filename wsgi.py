@@ -1,1 +1,3 @@
-from koala import app
+from koala import get_app
+
+app = get_app()
