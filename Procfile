@@ -1,1 +1,1 @@
-web: gnicorn wsgi:manager
+web: gunicorn wsgi:manager
