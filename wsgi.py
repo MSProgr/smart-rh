@@ -1,3 +1,3 @@
-from koala import get_app
+from koala import get_manager
 
-app = get_app()
+manager = get_manager()
