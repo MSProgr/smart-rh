@@ -1,0 +1,122 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="col-md-7 col-sm-7 col-xs-12">
+  <form method="POST" action="">
+    {{ form.hidden_tag()}}
+    <fieldset class="form-group">
+      <legend> Demande de ligne d'exploitation mobile temporaire</legend>
+ <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.offre.errors %}
+        {{form.offre(class="form-control form-control-lg is-invalid selectpicker")}}
+        <div class="text-feedback">
+          {% for error in form.offre.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.offre(class="form-control form-control-lg selectpicker")}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.motif.errors %}
+        {{form.motif(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.motif.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.motif(class="form-control form-control-lg",placeholder=form.motif.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.nom_projet.errors %}
+        {{form.nom_projet(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.nom_projet.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.nom_projet(class="form-control form-control-lg",placeholder=form.nom_projet.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.puces.errors %}
+        {{form.puces(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.puces.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.puces(class="form-control form-control-lg",placeholder=form.puces.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.pilote.errors %}
+        {{form.pilote(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.pilote.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.pilote(class="form-control form-control-lg",placeholder=form.pilote.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.type_parc.errors %}
+        {{form.type_parc(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.type_parc.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.type_parc(class="form-control form-control-lg",placeholder=form.type_parc.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.caracteristiques.errors %}
+        {{form.caracteristiques(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.caracteristiques.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.caracteristiques(class="form-control form-control-lg",placeholder=form.caracteristiques.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.date_debut.errors %}
+        {{form.date_debut(class="form-control form-control-lg is-invalid dtpick")}}
+        <div class="text-feedback">
+          {% for error in form.date_debut.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.date_debut(class="form-control form-control-lg dtpick",placeholder=form.date_debut.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.date_fin.errors %}
+        {{form.date_fin(class="form-control form-control-lg is-invalid dtpick")}}
+        <div class="text-feedback">
+          {% for error in form.date_fin.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.date_fin(class="form-control form-control-lg dtpick",placeholder=form.date_fin.label.text)}}
+        {% endif %}
+      </div>
+      <div class="form-group">
+        {{form.submit(class="btn btn-outline-warning")}}
+      </div>
+    </fieldset>
+  </form>
+</div>
+{% endblock content %}

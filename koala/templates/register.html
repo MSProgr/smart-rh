@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="col-md-4 col-sm-4 col-xs-12">
+	<form method="POST" action="">
+		{{ form.hidden_tag()}}
+		<fieldset class="form-group">
+			<legend> Nouveau enregitrement</legend>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.matricule.errors %}
+				{{form.matricule(class="form-control form-control-lg is-invalid")}}
+				<div class="text-feedback">
+					{% for error in form.matricule.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.matricule(class="form-control form-control-lg",placeholder="Matricule")}}
+				{% endif %}
+			</div>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.nom.errors %}
+				{{form.nom(class="form-control form-control-lg is-invalid")}}
+				<div class="text-feedback">
+					{% for error in form.nom.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.nom(class="form-control form-control-lg",placeholder="Matricule")}}
+				{% endif %}
+			</div>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.prenom.errors %}
+				{{form.prenom(class="form-control form-control-lg is-invalid")}}
+				<div class="text-feedback">
+					{% for error in form.prenom.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.prenom(class="form-control form-control-lg",placeholder="Prenom")}}
+				{% endif %}
+			</div>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.email.errors %}
+				{{form.email(class="form-control form-control-lg is-invalid")}}
+				<div class="text-feedback">
+					{% for error in form.email.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.email(class="form-control form-control-lg",placeholder="Email")}}
+				{% endif %}
+			</div>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.code_structure.errors %}
+				{{form.code_structure(class="form-control form-control-lg is-invalid")}}
+				<div class="text-feedback">
+					{% for error in form.code_structure.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.code_structure(class="form-control form-control-lg",placeholder="Code Structure")}}
+				{% endif %}
+			</div>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.groupe.errors %}
+				{{form.groupe(class="form-control form-control-lg is-invalid selectpicker")}}
+				<div class="text-feedback">
+					{% for error in form.groupe.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.groupe(class="form-control form-control-lg selectpicker",placeholder="Groupe")}}
+				{% endif %}
+			</div>
+			<div class="input-group"  style="margin-bottom: 5px;">
+				{% if form.matricule_sup.errors %}
+				{{form.matricule_sup(class="form-control form-control-lg is-invalid")}}
+				<div class="text-feedback">
+					{% for error in form.matricule_sup.errors %}
+					<span class="text-danger">{{error}}</span>
+					{% endfor %}
+				</div>
+				{% else %}
+				{{form.matricule_sup(class="form-control form-control-lg",placeholder="Code Structure")}}
+				{% endif %}
+			</div>
+			<div class="form-group">
+				{{form.submit(class="btn btn-outline-warning")}}
+			</div>
+		</fieldset>
+	</form>
+</div>
+{% endblock content %}

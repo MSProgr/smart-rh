@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link href="https://stackpath.bootstrapcdn.com/bootswatch/4.4.1/cosmo/bootstrap.min.css" rel="stylesheet" integrity="sha384-qdQEsAI45WFCO5QwXBelBe1rR9Nwiss4rGEqiszC+9olH1ScrLrMQr1KmDR964uZ" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.0/jquery-ui.css">
+</head>
+<body class='container-fluid'>
+	<nav class="navbar navbar-expand-lg navbar-secondary bg-secondary">
+    <a class="navbar-brand text-warning" href="#">ORANGE-SENEGAL</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon text-white">Menu</span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        {% if current_user.is_authenticated %}
+          <li class="nav-item active">
+            <a class="nav-link text-light" href="{{url_for('demande')}}">Nouvelle Demande<span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link text-light" href="{{url_for('logout')}}">Se déconnecter <span class="sr-only">(current)</span></a>
+          </li>
+        {% else %}
+        {% endif %}
+      </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-1" type="text" placeholder="Pole Digital - @copyright 2020" aria-label="Search" disabled>
+      </form>
+    </div>
+  </nav>
+  <div class="col-md-6 offset-md-4 offset-sm-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{category}} alert-dismissible fade show" data-auto-dismiss='4000' role="alert">
+      {{message}}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+  <div class="row">
+    <div class='col-md-4 col-sm-4 col-xs-12'>
+      <div id="carouselExampleSlidesOnly" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img class="d-block" src="{{ url_for('static',filename='images/12_1.jpg')}}" alt="First slide">
+          </div>
+          <div class="carousel-item">
+            <img class="d-block" src="{{ url_for('static',filename='images/6_0.jpg')}}" alt="First slide">
+          </div>
+          <div class="carousel-item">
+            <img class="d-block" src="{{ url_for('static',filename='images/15_1.jpg')}}" alt="First slide">
+          </div>
+        </div>
+      </div>
+      {% if current_user.is_authenticated %}
+      <div class="card text-white bg-dark mb-3 mt-2 " >
+        <div class="card-header">Bonjour {{current_user.prenom}} {{current_user.nom}}</div>
+        <div class="card-body">
+          <p class="card-text">Matricule : {{current_user.matricule}}</p>
+          <p class="card-text">Structure : {{current_user.code_structure}}</p>
+          <p class="card-text">Poste : {{current_user.groupe}}</p>
+        </div>
+      </div>
+      {% else %}
+      <div class="card text-white bg-secondary mb-3 mt-2 " >
+        <div class="card-header text-muted text-center font-weight-bold font-italic">A propos des parcs mobiles</div>
+        <div class="card-body">
+          {% for parc in parcs %}
+          <button class='btn btn-outline-warning btn-lg btn-block' data-toggle="tooltip" data-placement="right" title="{{parc.detail_parc}}">{{parc.nom_parc}}</button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% block content %}
+    {% endblock content %}
+  </div>
+
+
+ <script
+  src="https://code.jquery.com/jquery-1.9.1.js"
+  integrity="sha256-e9gNBsAcA0DBuRWbm0oZfbiCyhjLrI6bmqAl5o+ZjUA="
+  crossorigin="anonymous"></script>
+  <script
+  src="https://code.jquery.com/ui/1.11.0/jquery-ui.min.js"
+  integrity="sha256-lCF+55kMUF+3fO/3BiXui4eiUKcQmtr7ecKSeLVDxIQ="
+  crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap-auto-dismiss-alert@1.0.2/bootstrap-auto-dismiss-alert.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap-auto-dismiss-alert@1.0.2/bootstrap-auto-dismiss-alert.min.js"></script>
+</body>
+<script>
+  $(function() {
+    $( ".dtpick" ).datepicker();
+  });
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+    });
+  $(function () {
+    $('[data-toggle="popover"]').popover()
+  })
+</script>
+</body>
+</html>

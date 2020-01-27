@@ -1,0 +1,47 @@
+ {% extends 'layout.html' %}
+ {% block content %}
+ <div class="col-md-8 col-sm-8 col-xs-12">
+  <form method="POST" action="">
+    {{ form.hidden_tag()}}
+    <fieldset class="form-group">
+      <legend class='text-muted' style="font-size: 1.8em;">Veuillez vous identifier</legend>
+      <div class="input-group" style="margin-bottom: 5px;">
+        {% if form.identifiant.errors %}
+        {{form.identifiant(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.identifiant.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.identifiant(class="form-control form-control-lg",placeholder=form.identifiant.label.text)}}
+        {% endif %}
+      </div>
+      <div class="input-group" style="margin-bottom: 5px;">
+        {% if form.password.errors %}
+        {{form.password(class="form-control form-control-lg is-invalid")}}
+        <div class="text-feedback">
+          {% for error in form.password.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.password(class="form-control form-control-lg",placeholder=form.password.label.text)}}
+        {% endif %}
+      </div>
+      <div class="form-check" style="margin-bottom: 5px;">
+        {{form.remember(class="form-check-input")}}
+        {{form.remember.label(class="form-check-label")}}
+      </div>
+      <div class="form-group">
+        {{form.submit(class="btn btn-outline-warning")}}
+      </div>
+    </fieldset>
+  </form>
+  <hr class='bg-secondary'>
+  <h3>Besoin d'aide à propos des offres ?</h3>
+    {% for offre in offres %}
+  <a tabindex="0"  class="btn btn-danger text-white mr-2 p-3 mb-2" style='width: 190px;' data-trigger="focus" data-toggle="popover" title="{{offre.nom}}" data-content='{{offre.description}}'>{{offre.nom}}<span class="badge badge-pill badge-light ml-1">{{offre.id}}</span></a>
+  {% endfor %}
+</div>
+{% endblock content %}

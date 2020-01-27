@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class='col-md-8'>
+	<h3>Ligne d'exploitation mobile permanent</h3>
+	<table class="table table-striped table-default">
+		<thead class="thead-dark">
+			<tr>
+				<th scope="col">Matricule Agent</th>
+				<th scope="col">Nom</th>
+				<th scope="col">Nom Projet</th>
+				<th scope="col">Nombre de Puces</th>
+				<th scope="col">Date de la Demande</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for demande_perm,u_p in zip_perm %}
+			<tr>
+				<th scope="row">{{u_p.matricule}}</th>
+				<th>{{u_p.nom+' '+u_p.prenom}}</th>
+				<th>{{demande_perm.nom_projet}}</th>
+				<td>{{demande_perm.puces}}</td>
+				<td>{{demande_perm.date_demande}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<h3>Ligne d'exploitation mobile temporaire</h3>
+	<table class="table table-striped table-default">
+		<thead class="thead-dark">
+			<tr>
+				<th scope="col">Matricule Agent</th>
+				<th scope="col">Nom</th>
+				<th scope="col">Nom Projet</th>
+				<th scope="col">Nombre de Puces</th>
+				<th scope="col">Date de la Demande</th>
+				<th scope="col">Date début projet</th>
+				<th scope="col">Date fin projet</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for demande_temp,u_t in zip_temp %}
+			<tr>
+				<th scope="row">{{u_t.matricule}}</th>
+				<th>{{u_t.nom+' '+u_t.prenom}}</th>
+				<th>{{demande_temp.nom_projet}}</th>
+				<td>{{demande_temp.puces}}</td>
+				<td>{{demande_temp.pilote}}</td>
+				<td>{{demande_temp.date_demande}}</td>
+				<td>{{demande_temp.date_debut}}</td>
+				<td>{{demande_temp.date_fin}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
