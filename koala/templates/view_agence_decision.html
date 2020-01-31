@@ -14,8 +14,8 @@
 			<p class="card-text">Nombre de puces : {{demande.puces}}</p>
 			<p class="card-text">Motif Demande : {{demande.motif}}</p>
 			<p class="card-text">Caractériqtiques Demande : {{demande.caracteristiques}}</p>
+			<p class="card-text">Date début Projet : {{demande.date_debut}}</p>
 			{% if 'Temporaire' in type_demande %}
-				<p class="card-text">Date début Projet : {{demande.date_debut}}</p>
 				<p class="card-text">Date fin Projet : {{demande.date_fin}}</p>
 			{% else %}
 			{% endif %}

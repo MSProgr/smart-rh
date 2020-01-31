@@ -58,6 +58,7 @@ class DemandeMobilePerm(db.Model):
 	caracteristiques = db.Column(db.Text,nullable=False)
 	etat_demande = db.Column(db.String(30),default="En attente")
 	date_demande = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
+	date_debut = db.Column(db.DateTime,nullable=False)
 	user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
 	parc_id = db.Column(db.Integer,db.ForeignKey('parc.id'),nullable=False)
 	offre_id = db.Column(db.Integer,db.ForeignKey('offre.id'),nullable=False)

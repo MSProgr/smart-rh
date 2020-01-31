@@ -32,6 +32,7 @@ class MobilePermanentForm(FlaskForm):
 	nom_projet = StringField('Nom du projet',validators=[DataRequired()])
 	puces = IntegerField("Nombre de puces",validators=[DataRequired()])
 	pilote = StringField('Pilote',validators=[DataRequired()])
+	date_debut = DateTimeField("Date de début d'utilisation",validators=[DataRequired()],format='%m/%d/%Y')
 	type_parc = SelectField("Type de Parc",coerce=int,choices=load_parc(),validators=[DataRequired()])
 	caracteristiques = TextAreaField("Caractéristiques",validators=[DataRequired()])
 	submit = SubmitField("Soumettre")

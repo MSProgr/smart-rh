@@ -104,24 +104,19 @@ def decision_age(demande_id,user_matricule,type_demande,decision):
 		for_user_after_validation_by_agence(demande_id,demande_type,'MISE EN ATTENTE',demande.author.email)
 		for_user_after_validation_by_agence(demande_id,demande_type,'MISE EN ATTENTE',chief.email)
 
-
+	flash("Un email de notification a été envoyez à l'agent demandeur! warning","warning")
 	return redirect(url_for('index'))
 
 #cette méthode est appelé pour  consulter la demande aprés la decision de l'agence: on y accéde en cliquant sur le lien envoyé par mail
-@app.route('/after_decision_agence/<token>')
-def info_demande(token):
+@app.route('/after_decision_agence/<demande_id>/<demande_type>')
+def info_demande(demande_id,demande_type):
 	try:
-		info = serializer.loads(token,salt='decision_agence')
+		demande = get_demande(demande_type,int(demande_id))
 	except:
 		flash("Veuillez cliquez à nouveau de l'email qui à été envoyer","warning")
 		return redirect(url_for('index'))
 
-	demande_id = int(info[0])
-	type_demande = info[1]
-
-	demande = get_demande(type_demande,demande_id)
-
-	return render_template('view_agence_decision.html',demande=demande,type_demande=type_demande)
+	return render_template('view_agence_decision.html',demande=demande,type_demande=demande_type)
 
 
 

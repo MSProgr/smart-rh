@@ -89,6 +89,18 @@
         {{form.caracteristiques(class="form-control form-control-lg",placeholder=form.caracteristiques.label.text)}}
         {% endif %}
       </div>
+      <div class="input-group"  style="margin-bottom: 5px;">
+        {% if form.date_debut.errors %}
+        {{form.date_debut(class="form-control form-control-lg is-invalid dtpick")}}
+        <div class="text-feedback">
+          {% for error in form.date_debut.errors %}
+          <span class="text-danger">{{error}}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        {{form.date_debut(class="form-control form-control-lg dtpick",placeholder=form.date_debut.label.text)}}
+        {% endif %}
+      </div>
       <div class="form-group">
         {{form.submit(class="btn btn-outline-warning")}}
       </div>
