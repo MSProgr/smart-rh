@@ -1,5 +1,5 @@
 from flask_login import UserMixin,current_user
-from koala import db,login_manager
+from koala import db,login_manager,bcrypt
 
 from datetime import datetime
 
@@ -18,7 +18,7 @@ class User(db.Model,UserMixin):
 	code_structure = db.Column(db.String(50),nullable=False)
 	groupe = db.Column(db.String(30),nullable=False)
 	identifiant = db.Column(db.String(120),nullable=False,unique=True)
-	password = db.Column(db.String(60),nullable=False,default='123456')
+	password = db.Column(db.String(60),nullable=False,default=bcrypt.generate_password_hash('123456').decode('utf-8'))
 	matricule_sup = db.Column(db.Integer)
 	demandeMobileTemp = db.relationship('DemandeMobileTemp',backref='author',lazy=True)
 	demandeMobilePerm = db.relationship('DemandeMobilePerm',backref='author',lazy=True)
@@ -62,4 +62,8 @@ class DemandeMobilePerm(db.Model):
 	parc_id = db.Column(db.Integer,db.ForeignKey('parc.id'),nullable=False)
 	offre_id = db.Column(db.Integer,db.ForeignKey('offre.id'),nullable=False)
 
+class Agence(db.Model):
+	id = db.Column(db.Integer,unique=True,nullable=False,primary_key=True)
+	nom = db.Column(db.String(120),unique=True,nullable=False)
+	email = db.Column(db.String(120))
 

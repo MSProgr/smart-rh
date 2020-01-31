@@ -4,37 +4,124 @@ from flask_login import login_user,logout_user,current_user,login_required
 from koala import app,db,bcrypt,mail
 from koala.forms import LoginForm,MobileTemporaireForm,MobilePermanentForm
 from flask_mail import Message
-from koala.models import User,Offre,Parc,DemandeMobileTemp,DemandeMobilePerm
-from koala.config import load_offre,groupe_choices,load_parc,send_mail,is_chef_Sce,get_n_1,mail_to_n_1,serializer
+from koala.models import User,Offre,Parc,DemandeMobileTemp,DemandeMobilePerm,Agence
+from koala.config import load_offre,groupe_choices,load_parc,send_email_to_user,is_chef_Sce,get_n_1,send_mail_to_n_1,serializer
+from koala.config import get_add_and_send_email_from_form,send_notification_email_after_n_1_decision,tmp,perm,get_demande
+from koala.config import send_notification_to_agence_after_n_1_validation,for_user_after_validation_by_agence
 
 import os
 from datetime import datetime
-from itsdangerous import SignatureExpired
 
 
-
+#cette méthode est appelé quand le n+1 click sur le line qui lui est envoyer pour prendre une décision sur la demande
 @app.route('/validating_demande/<token>')
 def validating_demande(token):
+	#the token contain the [demande_id,type_demande,'current_user.email']
 	try:
-		info = serializer.loads(token,salt='validating-demande')
-	except SignatureExpired:
-		flash("Date d'expiration dépassé! Veuillez envoyez un mail à la DRH pour validation de la demande")
+		info = serializer.loads(token,salt='demande_validation')
+	except:
+		flash("Veuillez cliquez à nouveau de l'email qui à été envoyer")
 		return redirect(url_for('index'))
+
 	num_demande = int(info[0])
 	type_demande = info[1]
-	user_email = info[2]
 
-	if 'temp' in type_demande:
-		demande = DemandeMobileTemp.query.get(num_demande)
+	demande = get_demande(type_demande,num_demande)
+
+	return render_template('decision.html',demande=demande,type_demande=type_demande)
+
+
+#cette méthode redigire l'agence aprés click sur le line pour qu'il prennne sa decision sur la demande
+@app.route('/validating_agence/<token>')
+def validating_agence(token):
+	#[demande_id,type_demande],
+	try:
+		info = serializer.loads(token,salt='validation_agence')
+	except:
+		flash("Veuillez cliquez à nouveau de l'email qui à été envoyer","warning")
+		return redirect(url_for('index'))
+
+	demande_id = int(info[0])
+	type_demande = info[1]
+
+	demande = get_demande(type_demande,demande_id)
+
+	return render_template('decision_agence.html',demande=demande,type_demande=type_demande)
+
+
+#Cettes méthode est appelé une fois que le n+1 à cliquez sur une decision
+#on envoie un mail à l'agent demandeur et à l'agence
+@app.route('/decision_sup/<demande_id>/<user_matricule>/<type_demande>/<decision>')
+def decision_sup(demande_id,user_matricule,type_demande,decision):
+	demande_id = int(demande_id)
+	user_matricule = int(user_matricule)
+	type_demande = type_demande
+	decision = decision
+	try:
+		demande = get_demande(type_demande,demande_id)
+	except:
+		return render_template('error.html')
+
+	if 'valide' in decision:
+		send_notification_email_after_n_1_decision(type_demande,demande_id,demande.puces,demande.date_demande,"VALIDER",demande.author.email)
+		email_agence = Agence.query.first().email
+		send_notification_to_agence_after_n_1_validation(demande_id,type_demande,demande.puces,demande.date_demande,email_agence)
+	elif 'rejetter' in decision:
+		send_notification_email_after_n_1_decision(type_demande,demande_id,demande.puces,demande.date_demande,"REJETTER",demande.author.email)
 	else:
-		demande = DemandeMobilePerm.query.get(num_demande)
-	demande.etat_demande = 'Valider'
-	db.session.commit()
-	msg = Message('Demande de ligne d\'exploitation',sender=('DRH SONATEL','diengdieng@gmail.com'),recipients=['ousseynou.dieng@univ-thies.sn'])
-	msg.body="Votre demande de ligne d'exploitation du {}, à été valider".format(demande.date_demande)
-	mail.send(msg)
-	flash("Un email de notification de la validation de la demande a été envoyer à {} {}. Au revoir".format(demande.author.prenom,demande.author.nom),'success')
+		send_notification_email_after_n_1_decision(type_demande,demande_id,demande.puces,demande.date_demande,"MISE EN ATTENTE",demande.author.email)
+
 	return redirect(url_for('index'))
+
+
+
+#cette méthode est appelé une fois que l'agence à prit sa decision
+#on envoie un mail à l'agent demandeur et à son supérieur
+@app.route('/decision_age/<demande_id>/<user_matricule>/<type_demande>/<decision>')
+def decision_age(demande_id,user_matricule,type_demande,decision):
+	demande_id = int(demande_id)
+	user_matricule = int(user_matricule)
+	demande_type = type_demande
+	decision = decision
+	try:
+		demande = get_demande(demande_type,demande_id)
+	except:
+		return render_template('error.html')
+
+	chief = User.query.filter_by(matricule=demande.author.matricule_sup).first()
+
+	if 'valide' in decision:
+		demande.etat_demande='Valider'
+		db.session.commit()
+		for_user_after_validation_by_agence(demande_id,demande_type,'VALIDER',demande.author.email)
+		for_user_after_validation_by_agence(demande_id,demande_type,'VALIDER',chief.email)
+	elif 'rejetter' in decision:
+		demande.etat_demande='Rejete'
+		db.session.commit()
+		for_user_after_validation_by_agence(demande_id,demande_type,'REJETTER',demande.author.email)
+		for_user_after_validation_by_agence(demande_id,demande_type,'REJETTER',chief.email)
+	else:
+		for_user_after_validation_by_agence(demande_id,demande_type,'MISE EN ATTENTE',demande.author.email)
+		for_user_after_validation_by_agence(demande_id,demande_type,'MISE EN ATTENTE',chief.email)
+
+
+	return redirect(url_for('index'))
+
+#cette méthode est appelé pour  consulter la demande aprés la decision de l'agence: on y accéde en cliquant sur le lien envoyé par mail
+@app.route('/after_decision_agence/<token>')
+def info_demande(token):
+	try:
+		info = serializer.loads(token,salt='decision_agence')
+	except:
+		flash("Veuillez cliquez à nouveau de l'email qui à été envoyer","warning")
+		return redirect(url_for('index'))
+
+	demande_id = int(info[0])
+	type_demande = info[1]
+
+	demande = get_demande(type_demande,demande_id)
+
+	return render_template('view_agence_decision.html',demande=demande,type_demande=type_demande)
 
 
 
@@ -65,14 +152,7 @@ def index():
 def demande():
 	dmt = DemandeMobileTemp.query.filter_by(author=current_user)
 	dmp = DemandeMobilePerm.query.filter_by(author=current_user)
-	parcs = db.session.query(Parc.nom_parc)
-	offres = db.session.query(Offre.nom)
-	parc_str,offre_str = "",""
-	for p in parcs:
-		parc_str+=p[0]+' - '
-	for o in offres:
-		offre_str+=o[0]+' - '
-	return render_template('demande.html',dmt=dmt,dmp=dmp,parc_str=parc_str,offre_str=offre_str)
+	return render_template('demande.html',dmt=dmt,dmp=dmp)
 
 
 
@@ -80,32 +160,11 @@ def demande():
 def mobile_temporaire():
 	form = MobileTemporaireForm()
 	if form.validate_on_submit():
-		motif = form.motif.data
-		nom_projet = form.nom_projet.data
-		puces = form.puces.data
-		pilote = form.pilote.data
-		caracteristiques = form.caracteristiques.data
-		date_debut = datetime.strptime((form.date_debut.data).strftime('%m/%d/%Y'), '%m/%d/%Y')
-		date_fin = datetime.strptime((form.date_fin.data).strftime('%m/%d/%Y'), '%m/%d/%Y')
-		user_id = current_user.id
-		parc_id = form.type_parc.data
-		offre_id = form.offre.data
-		demande = DemandeMobileTemp(motif=motif,nom_projet=nom_projet,puces=int(puces),pilote=pilote,
-		caracteristiques=caracteristiques,date_debut=date_debut,date_fin=date_fin,
-		user_id=int(user_id),parc_id=int(parc_id),offre_id=int(offre_id))
-		db.session.add(demande)
-		db.session.commit()
-		the_message = send_mail('Temporaire',str(demande.id),str(puces),str(demande.date_demande))
-		msg = Message('Accusé de Réception',sender=('DRH SONATEL','diengdieng@gmail.com'),recipients=['ousseynou.dieng@univ-thies.sn'])
-		msg.html=the_message
-		mail.send(msg)
+		demande = get_add_and_send_email_from_form(tmp,form)
+		
 		if is_chef_Sce():
-			the_message = mail_to_n_1('Temporaire',str(demande.id),str(puces),str(demande.date_demande))
-			msg = Message('Demande de ligne d\'exploitation',sender=('DRH SONATEL','diengdieng@gmail.com'),recipients=['diengdieng941@hotmail.com'])
-			token = serializer.dumps([demande.id,'temp',current_user.email],salt='validating-demande')
-			link = url_for('validating_demande',token=token,_external=True)
-			msg.body=the_message+"\nVeuillez cliquez sur le lien ci-dessous pour valider la demande\n{}".format(link)
-			mail.send(msg)
+			send_mail_to_n_1(tmp,demande.id,demande.puces,demande.date_demande)
+
 		flash('Nous avons pris en compte votre demande. Vous serez notifié une fois qu\'elle sera traitée !','primary' )
 		return redirect(url_for('demande'))
 	elif request.method == 'GET':
@@ -120,31 +179,11 @@ def mobile_temporaire():
 def mobile_permanent():
 	form = MobilePermanentForm()
 	if form.validate_on_submit():
-		motif = form.motif.data
-		nom_projet = form.nom_projet.data
-		puces = form.puces.data
-		pilote = form.pilote.data
-		caracteristiques = form.caracteristiques.data
-		user_id = current_user.id
-		parc_id = form.type_parc.data
-		offre_id = form.offre.data
-		demande = DemandeMobilePerm(motif=motif,nom_projet=nom_projet,puces=int(puces),pilote=pilote,
-		caracteristiques=caracteristiques,
-		user_id=int(user_id),parc_id=int(parc_id),offre_id=int(offre_id))
-		db.session.add(demande)
-		db.session.commit()
-		the_message = send_mail('Permanent',str(demande.id),str(puces),str(demande.date_demande))
-		msg = Message('Demande de ligne',sender=('DRH SONATEL','diengdieng@gmail.com'),recipients=['ousseynou.dieng@univ-thies.sn'])
-		msg.html=the_message
-		mail.send(msg)
+		demande=get_add_and_send_email_from_form(perm,form)
+
 		if is_chef_Sce():
-			the_message = mail_to_n_1('Temporaire',str(demande.id),str(puces),str(demande.date_demande))
-			msg = Message('Demande de ligne d\'exploitation',sender=('DRH SONATEL','diengdieng@gmail.com'),recipients=['diengdieng941@hotmail.com'])
-			msg.html=the_message
-			token = serializer.dumps([demande.id,'perm',current_user.email],salt='validating-demande')
-			link = url_for('validating_demande',token=token,_external=True)
-			msg.html=the_message+"\nVeuillez cliquez sur le lien ci-dessous pour valider la demande\n{}".format(link)
-			mail.send(msg)
+			send_mail_to_n_1(perm,demande.id,demande.puces,demande.date_demande)
+
 		flash('Nous avons pris en compte votre demande. Vous serez notifié une fois qu\'elle sera traitée !','primary' )
 		return redirect(url_for('demande'))
 	elif request.method == 'GET':
@@ -162,33 +201,3 @@ def logout():
 	return redirect(url_for('index'))
 
 
-
-
-
-# @app.route('/demande_inf')
-# @login_required
-# def all_demande_inf():
-# 	#Demande des colaborateurs
-# 	all_users_colab = User.query.filter_by(matricule_sup=current_user.matricule)
-# 	demandes_colab_mob_perm = []
-# 	u_perm = []
-
-# 	demandes_colab_mob_temp = []
-# 	u_temp = []
-
-# 	for u in all_users_colab:
-# 		demande_ = DemandeMobilePerm.query.filter_by(author=u)
-# 		if demande_.first():
-# 			demandes_colab_mob_perm.append(demande_)
-# 			u_perm.append(u)
-
-# 	for u in all_users_colab:
-# 		demande_ = DemandeMobileTemp.query.filter_by(author=u)
-# 		if demande_.first():
-# 			demandes_colab_mob_temp.append(demande_)
-# 			u_temp.append(u)
-
-# 	zip_perm = zip(demandes_colab_mob_perm,u_perm)
-# 	zip_temp = zip(demandes_colab_mob_perm,u_temp)
-
-# 	return render_template('demande_colab.html',zip_perm=zip_perm,zip_temp=zip_temp)

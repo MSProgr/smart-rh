@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class='col-md-8 col-xs-12 col-sm-8'>
+	<div class="card">
+		<div class="card-header">
+			Validation de la demande
+		</div>
+		<div class="card-body">
+			<h5 class="card-title">Agent : {{demande.author.prenom+'  '+demande.author.nom}}</h5>
+			<p class="card-text">Matricule Agent : {{demande.author.matricule}}</p>
+			<p class="card-text">Type de la Demande : Ligne d'exploitation Mobile {{type_demande}}</p>
+			<p class="card-text">Numero Demande : {{demande.id}}</p>
+			<p class="card-text">Date demande : {{demande.date_demande}}</p>
+			<p class="card-text">Nombre de puces : {{demande.puces}}</p>
+			<p class="card-text">Motif Demande : {{demande.motif}}</p>
+			<p class="card-text">Caractériqtiques Demande : {{demande.caracteristiques}}</p>
+			{% if 'Temporaire' in type_demande %}
+				<p class="card-text">Date début Projet : {{demande.date_debut}}</p>
+				<p class="card-text">Date fin Projet : {{demande.date_fin}}</p>
+			{% else %}
+			{% endif %}
+
+			<a href="{{url_for('decision_sup',demande_id=demande.id,user_matricule=demande.author.matricule,type_demande=type_demande,decision='valide')}}" class="btn btn-success">Valider</a>
+
+			<a href="{{url_for('decision_sup',demande_id=demande.id,user_matricule=demande.author.matricule,type_demande=type_demande,decision='rejetter')}}" class="btn btn-secondary">Rejetter</a>
+
+			<a href="{{url_for('decision_sup',demande_id=demande.id,user_matricule=demande.author.matricule,type_demande=type_demande,decision='attente')}}" class="btn btn-warning">Mettre en Attente</a>
+			
+		</div>
+	</div>
+</div>
+{% endblock %}

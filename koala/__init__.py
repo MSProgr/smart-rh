@@ -12,8 +12,9 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = 'ec469fe94afede3381e93e36bb4e432c'
-#app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:@localhost:3306/demande_drh"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:@localhost:3306/demande_drh"
+#app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
+#app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://ousseynou:1994@localhost/sonatel_db"
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
@@ -33,8 +34,8 @@ mail = Mail(app)
 
 
 
-from koala.models import User,Parc,Offre,DemandeMobileTemp,DemandeMobilePerm
-from koala.config import UserView, DemandeMobileTempView,DemandeMobilePermView,ParcView,OffreView,MyAdminIndexView
+from koala.models import User,Parc,Offre,DemandeMobileTemp,DemandeMobilePerm,Agence
+from koala.config import UserView, DemandeMobileTempView,DemandeMobilePermView,ParcView,OffreView,MyAdminIndexView,AgenceView
 
 admin = Admin(app, name="Lgne d'exploitation",index_view=MyAdminIndexView())
 
@@ -45,6 +46,7 @@ admin.add_view(ParcView(Parc, db.session))
 admin.add_view(OffreView(Offre, db.session))
 admin.add_view(DemandeMobileTempView(DemandeMobileTemp, db.session))
 admin.add_view(DemandeMobilePermView(DemandeMobilePerm, db.session))
+admin.add_view(AgenceView(Agence, db.session))
 
 login_manager.login_view = 'login'
 login_manager.login_message_category = "warning"
