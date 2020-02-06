@@ -213,16 +213,6 @@ def get_add_and_send_email_from_form(form_type,form):
 	return demande
 
 
-
-def save_fichier(form_fichier):
-	#random_hex = secrets.token_hex(8)
-	#_, f_ext = os.path.splitext(form_fichier.filename)
-	fichier_fn = secure_filename(form_fichier.filename)
-	fichier_path = os.path.join(app.root_path,"static/fichiers",fichier_fn)
-	form_fichier.save(fichier_path)
-	return fichier_fn
-
-
 class MyAdminIndexView(AdminIndexView):
 	def is_accessible(self):
 		return current_user.is_authenticated
@@ -304,7 +294,7 @@ class DemandeMobileTempView(ModelView):
 	column_exclude_list = ['motif','caracteristiques','pilote']
 	column_searchable_list = []
 	column_filters = ['date_demande','date_debut','date_fin','etat_demande']
-	column_editable_list = ['etat_demande']
+	column_editable_list = ['etat_demande','date_fin','puces','date_debut']
 	column_formatters = dict(author=lambda v, c, m, p: m.author.prenom+'  '+m.author.nom+ ' : '+str(m.author.matricule))
 	form_base_class = SecureForm
 	form_overrides = dict(complement_demande=FileField)
@@ -313,21 +303,24 @@ class DemandeMobileTempView(ModelView):
 	}
 
 	def on_model_change(self,form, model, is_created):
-		if request.method == "POST":
-			if 'complement_demande' not in request.files:
-				flash('Veuilez uploader le bon fichier','danger')
-				return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
-				file = request.files.get(form.complement_demande.name)
-				if file:
-					return redirect(url_for('test',test_f=file.filename))
-					df = pd.read_excel(file)
-					if df.shape[0] != model.puces:
-						flash('le nombre de puces demandé est différent du nombre de numéro présent dans le fichier','danger')
-						return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
-					else:
-						fichier_name = save_fichier(form.complement_demande.data)
-						model.complement_demande = fichier_name
-						db.session.commit()
+		if not is_created:
+			try:
+				file = request.files.get('complement_demande')
+				df = pd.read_excel(file,error_bad_lines=True)
+			except:
+				return
+
+			if df.shape[0] == int(model.puces):
+				fichier_fn = secure_filename(form.complement_demande.data.filename)
+				fichier_path = os.path.join(app.root_path,"static/fichiers",fichier_fn)
+				df.to_excel(fichier_path,index=False)
+				model.complement_demande = fichier_fn
+				db.session.commit()
+				return
+			else:
+				flash('Le nombre de numéro dans le fichier est different du nombre de puces de la demande','danger')
+				model.complement_demande = ""
+				return
 
 		
 	def is_accessible(self):
@@ -336,8 +329,7 @@ class DemandeMobileTempView(ModelView):
 	def inaccessible_callback(self,name,**kwargs):
 		return redirect(url_for('index'))
 
-
-
+#num_ligne, periode, traffic_voix_sortant, traffic_data,ca_recharge,date_dernier_appel
 
 class DemandeMobilePermView(ModelView):
 	page_size = 20
@@ -352,7 +344,7 @@ class DemandeMobilePermView(ModelView):
 	column_exclude_list = ['motif','caracteristiques','pilote']
 	column_searchable_list = []
 	column_filters = ['date_demande','etat_demande']
-	column_editable_list = ['etat_demande']
+	column_editable_list = ['etat_demande','puces','date_debut']
 	column_formatters = dict(author=lambda v, c, m, p: m.author.prenom+'  '+m.author.nom+ ' : '+str(m.author.matricule))
 	form_base_class = SecureForm
 	form_overrides = dict(complement_demande=FileField)
@@ -366,23 +358,26 @@ class DemandeMobilePermView(ModelView):
 	def inaccessible_callback(self,name,**kwargs):
 		return redirect(url_for('index'))
 
-	def on_model_change(self,form, model, is_created=True):
+	def on_model_change(self,form, model, is_created):
 		if not is_created:
-			if request.method == "POST":
-				if 'complement_demande' not in request.files:
-					flash('Veuilez uploader le bon fichier','danger')
-					return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
-				file = request.files.get(form.complement_demande.name)
-				if file:
-					return redirect(url_for('test',test_f=file.filename))
-				df = pd.read_excel(file)
-				if df.shape[0] != model.puces:
-					flash('le nombre de puces demandé est différent du nombre de numéro présent dans le fichier','danger')
-					return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
-				else:
-					fichier_name = save_fichier(form.complement_demande.data)
-					model.complement_demande = fichier_name
-					db.session.commit()
+			try:
+				file = request.files.get('complement_demande')
+				df = pd.read_excel(file,error_bad_lines=True)
+			except:
+				return
+
+			if df.shape[0] == int(model.puces):
+				fichier_fn = secure_filename(form.complement_demande.data.filename)
+				fichier_path = os.path.join(app.root_path,"static/fichiers",fichier_fn)
+				df.to_excel(fichier_path,index=False)
+				model.complement_demande = fichier_fn
+				db.session.commit()
+				return
+			else:
+				flash('Le nombre de numéro dans le fichier est different du nombre de puces de la demande','danger')
+				model.complement_demande = ""
+				return
+
 
 
 class AgenceView(ModelView):

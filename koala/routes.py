@@ -195,10 +195,6 @@ def mobile_permanent():
 
 	return render_template('mobile_permanent.html',form=form)
 
-@app.route('/error_fichier/<nbr_puces>/<taille_fichier>')
-def error_fichier(nbr_puces,taille_fichier):
-	return render_template('error_fichier.html',nbr_puces=nbr_puces,taille_fichier=taille_fichier)
-
 @app.route('/logout')
 @login_required
 def logout():
