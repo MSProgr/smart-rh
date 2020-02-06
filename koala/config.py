@@ -1,15 +1,22 @@
-from flask import request,session,redirect,url_for
+from flask import request,session,redirect,url_for,flash
 from flask_login import current_user
 from flask_mail import Message
-from koala import db,babel,mail
+from koala import db,babel,mail,app
 from koala.models import Offre,User,Parc,DemandeMobileTemp,DemandeMobilePerm
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_admin import AdminIndexView
+from flask_wtf.file import FileField
+from flask_admin.helpers import validate_form_on_submit
+from werkzeug.utils import secure_filename
+
 from itsdangerous import URLSafeSerializer
-
+import pandas as pd
+import os
 from datetime import datetime
-
+import secrets
+import io
+import base64
 
 groupe_choices = [('Chef Sce','Chef Sce'),('Chef Departement','Chef Departement'),('Directeur','Directeur')]
 
@@ -80,6 +87,9 @@ def notification_to_agence(type_demande,numero,nbr_puces,date_demande):
 
 def is_chef_Sce():
 	return 'Sce' in current_user.groupe
+
+def is_chef_dep():
+	return 'Departement' in current_user.groupe
 
 
 
@@ -204,6 +214,15 @@ def get_add_and_send_email_from_form(form_type,form):
 
 
 
+def save_fichier(form_fichier):
+	#random_hex = secrets.token_hex(8)
+	#_, f_ext = os.path.splitext(form_fichier.filename)
+	fichier_fn = secure_filename(form_fichier.filename)
+	fichier_path = os.path.join(app.root_path,"static/fichiers",fichier_fn)
+	form_fichier.save(fichier_path)
+	return fichier_fn
+
+
 class MyAdminIndexView(AdminIndexView):
 	def is_accessible(self):
 		return current_user.is_authenticated
@@ -247,12 +266,12 @@ class ParcView(ModelView):
 	edit_modal = True
 	can_export = True
 	export_types = ['csv']
+
 	def is_accessible(self):
 		return current_user.is_authenticated
 
 	def inaccessible_callback(self,name,**kwargs):
 		return redirect(url_for('index'))
-
 
 
 
@@ -288,9 +307,29 @@ class DemandeMobileTempView(ModelView):
 	column_editable_list = ['etat_demande']
 	column_formatters = dict(author=lambda v, c, m, p: m.author.prenom+'  '+m.author.nom+ ' : '+str(m.author.matricule))
 	form_base_class = SecureForm
+	form_overrides = dict(complement_demande=FileField)
 	form_choices = {
 		'etat_demande':etat_demande_choices
 	}
+
+	def on_model_change(self,form, model, is_created):
+		if request.method == "POST":
+			if 'complement_demande' not in request.files:
+				flash('Veuilez uploader le bon fichier','danger')
+				return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
+				file = request.files.get(form.complement_demande.name)
+				if file:
+					return redirect(url_for('test',test_f=file.filename))
+					df = pd.read_excel(file)
+					if df.shape[0] != model.puces:
+						flash('le nombre de puces demandé est différent du nombre de numéro présent dans le fichier','danger')
+						return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
+					else:
+						fichier_name = save_fichier(form.complement_demande.data)
+						model.complement_demande = fichier_name
+						db.session.commit()
+
+		
 	def is_accessible(self):
 		return current_user.is_authenticated
 
@@ -316,14 +355,34 @@ class DemandeMobilePermView(ModelView):
 	column_editable_list = ['etat_demande']
 	column_formatters = dict(author=lambda v, c, m, p: m.author.prenom+'  '+m.author.nom+ ' : '+str(m.author.matricule))
 	form_base_class = SecureForm
+	form_overrides = dict(complement_demande=FileField)
 	form_choices = {
 		'etat_demande':etat_demande_choices
 	}
+			
 	def is_accessible(self):
 		return current_user.is_authenticated
 
 	def inaccessible_callback(self,name,**kwargs):
 		return redirect(url_for('index'))
+
+	def on_model_change(self,form, model, is_created=True):
+		if not is_created:
+			if request.method == "POST":
+				if 'complement_demande' not in request.files:
+					flash('Veuilez uploader le bon fichier','danger')
+					return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
+				file = request.files.get(form.complement_demande.name)
+				if file:
+					return redirect(url_for('test',test_f=file.filename))
+				df = pd.read_excel(file)
+				if df.shape[0] != model.puces:
+					flash('le nombre de puces demandé est différent du nombre de numéro présent dans le fichier','danger')
+					return redirect(url_for('error_fichier',nbr_puces=model.puces,taille_fichier=df.shape[0]))
+				else:
+					fichier_name = save_fichier(form.complement_demande.data)
+					model.complement_demande = fichier_name
+					db.session.commit()
 
 
 class AgenceView(ModelView):
