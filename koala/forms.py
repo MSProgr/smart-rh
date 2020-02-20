@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField,BooleanField,SubmitField,IntegerField,PasswordField,DateTimeField,SelectField,TextAreaField
 from wtforms.validators import DataRequired,Length,Email,EqualTo,ValidationError
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 from koala.models import User,Offre
 
@@ -36,3 +37,7 @@ class MobilePermanentForm(FlaskForm):
 	type_parc = SelectField("Type de Parc",coerce=int,choices=load_parc(),validators=[DataRequired()])
 	caracteristiques = TextAreaField("Caractéristiques",validators=[DataRequired()])
 	submit = SubmitField("Soumettre")
+
+class FacturationMobileForm(FlaskForm):
+	facturation = FileField("Fichier de Facturation",validators=[FileRequired(),FileAllowed(["xlsx","xls"])])
+	submit = SubmitField("Ajouter")

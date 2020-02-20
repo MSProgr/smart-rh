@@ -213,11 +213,28 @@ def get_add_and_send_email_from_form(form_type,form):
 	return demande
 
 
+def append_in_centrale(model,df,type_dem):
+	centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers/demande_mobile_centrale.xlsx"))
+	df['type de parc'] = Parc.query.get(model.parc_id).nom_parc
+	df['nom et prenom pilote ou utilisateur'] = model.pilote
+	df['Code Structure'] = model.author.code_structure
+	df['Nom du Projet'] = model.nom_projet
+	df['date de début projet'] = str(model.date_debut)
+	if 'temp' in type_dem:
+		df['date de fin projet'] = str(model.date_fin)
+	else:
+		df['date de fin projet'] = ""
+	new_centrale = pd.concat([centrale,df],ignore_index=True)
+	new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers/demande_mobile_centrale.xlsx"),index=False)
+				
+
+
 class MyAdminIndexView(AdminIndexView):
 	def is_accessible(self):
-		return current_user.is_authenticated
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))
 
 
@@ -241,9 +258,11 @@ class UserView(ModelView):
 	}
 
 	def is_accessible(self):
-		return current_user.is_authenticated
+		#return current_user.is_authenticated
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))
 
 
@@ -258,9 +277,10 @@ class ParcView(ModelView):
 	export_types = ['csv']
 
 	def is_accessible(self):
-		return current_user.is_authenticated
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))
 
 
@@ -273,9 +293,10 @@ class OffreView(ModelView):
 	can_export = True
 	export_types = ['csv']
 	def is_accessible(self):
-		return current_user.is_authenticated
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))
 
 
@@ -294,7 +315,8 @@ class DemandeMobileTempView(ModelView):
 	column_exclude_list = ['motif','caracteristiques','pilote']
 	column_searchable_list = []
 	column_filters = ['date_demande','date_debut','date_fin','etat_demande']
-	column_editable_list = ['etat_demande','date_fin','puces','date_debut']
+	#column_editable_list = ['etat_demande','date_fin','puces','date_debut']
+	column_editable_list = []
 	column_formatters = dict(author=lambda v, c, m, p: m.author.prenom+'  '+m.author.nom+ ' : '+str(m.author.matricule))
 	form_base_class = SecureForm
 	form_overrides = dict(complement_demande=FileField)
@@ -311,10 +333,13 @@ class DemandeMobileTempView(ModelView):
 				return
 
 			if df.shape[0] == int(model.puces):
-				fichier_fn = secure_filename(form.complement_demande.data.filename)
+				_, f_ext = os.path.splitext(form.complement_demande.data.filename)
+				fichier_fn = model.author.nom+"_"+model.author.prenom+"_"+str(model.date_demande)+f_ext
 				fichier_path = os.path.join(app.root_path,"static/fichiers",fichier_fn)
 				df.to_excel(fichier_path,index=False)
 				model.complement_demande = fichier_fn
+				#On concaténe les données avec le fichier de nessico
+				append_in_centrale(model,df,"temp")
 				db.session.commit()
 				return
 			else:
@@ -324,9 +349,10 @@ class DemandeMobileTempView(ModelView):
 
 		
 	def is_accessible(self):
-		return current_user.is_authenticated
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))
 
 #num_ligne, periode, traffic_voix_sortant, traffic_data,ca_recharge,date_dernier_appel
@@ -344,7 +370,8 @@ class DemandeMobilePermView(ModelView):
 	column_exclude_list = ['motif','caracteristiques','pilote']
 	column_searchable_list = []
 	column_filters = ['date_demande','etat_demande']
-	column_editable_list = ['etat_demande','puces','date_debut']
+	#column_editable_list = ['etat_demande','puces','date_debut']
+	column_editable_list = []
 	column_formatters = dict(author=lambda v, c, m, p: m.author.prenom+'  '+m.author.nom+ ' : '+str(m.author.matricule))
 	form_base_class = SecureForm
 	form_overrides = dict(complement_demande=FileField)
@@ -353,9 +380,10 @@ class DemandeMobilePermView(ModelView):
 	}
 			
 	def is_accessible(self):
-		return current_user.is_authenticated
+		return(current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))
 
 	def on_model_change(self,form, model, is_created):
@@ -367,10 +395,13 @@ class DemandeMobilePermView(ModelView):
 				return
 
 			if df.shape[0] == int(model.puces):
-				fichier_fn = secure_filename(form.complement_demande.data.filename)
+				_, f_ext = os.path.splitext(form.complement_demande.data.filename)
+				fichier_fn = model.author.nom+"_"+model.author.prenom+"_"+str(model.date_demande)+f_ext
 				fichier_path = os.path.join(app.root_path,"static/fichiers",fichier_fn)
 				df.to_excel(fichier_path,index=False)
 				model.complement_demande = fichier_fn
+				#Ici on concaténe le fichier centrale et le fichier qui vient de nessico
+				append_in_centrale(model,df,'perm')
 				db.session.commit()
 				return
 			else:
@@ -388,7 +419,8 @@ class AgenceView(ModelView):
 	can_export = True
 	export_types = ['csv']
 	def is_accessible(self):
-		return current_user.is_authenticated
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
 
 	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
 		return redirect(url_for('index'))

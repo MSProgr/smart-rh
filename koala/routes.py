@@ -3,7 +3,7 @@ from flask_login import login_user,logout_user,current_user,login_required
 
 from koala import app,db,bcrypt,mail
 
-from koala.forms import LoginForm,MobileTemporaireForm,MobilePermanentForm
+from koala.forms import LoginForm,MobileTemporaireForm,MobilePermanentForm,FacturationMobileForm
 
 from flask_mail import Message
 
@@ -19,6 +19,7 @@ from koala.config import send_notification_to_agence_after_n_1_validation,for_us
 
 import os
 from datetime import datetime
+import pandas as pd
 
 
 #cette méthode est appelé quand le n+1 click sur le line qui lui est envoyer pour prendre une décision sur la demande
@@ -153,9 +154,14 @@ def index():
 @app.route("/demande",methods=['GET','POST'])
 @login_required
 def demande():
-	dmt = DemandeMobileTemp.query.filter_by(author=current_user)
-	dmp = DemandeMobilePerm.query.filter_by(author=current_user)
-	return render_template('demande.html',dmt=dmt,dmp=dmp)
+	temp_page = request.args.get("temp_page", default=1, type=int)
+	perm_page = request.args.get("perm_page", default=1, type=int)
+
+	t_d = request.args.get("t_d",default="all_demande")
+	dmt,dmp = None,None
+	dmt = DemandeMobileTemp.query.filter_by(author=current_user).order_by(DemandeMobileTemp.id.desc()).paginate(page=temp_page,per_page=2)
+	dmp = DemandeMobilePerm.query.filter_by(author=current_user).order_by(DemandeMobilePerm.id.desc()).paginate(page=perm_page,per_page=2)
+	return render_template('demande.html',dmt=dmt,dmp=dmp,t_d=t_d)
 
 
 
@@ -195,6 +201,22 @@ def mobile_permanent():
 
 	return render_template('mobile_permanent.html',form=form)
 
+
+@app.route("/ajout_facturation",methods=['GET','POST'])
+def ajout_facturation():
+	form = FacturationMobileForm()
+	if form.validate_on_submit():
+		file = request.files.get('facturation')
+		df = pd.read_excel(file)
+		centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers/demande_mobile_centrale.xlsx"))
+		new_centrale = pd.merge(centrale,df,on="NUMERO MSISDN",how="outer")
+		new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers/demande_mobile_centrale.xlsx"),index=False)
+		return redirect(url_for("admin.index"))
+	return render_template("facturation.html",form=form)
+
+
+
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -202,6 +224,6 @@ def logout():
 	return redirect(url_for('index'))
 
 
-@app.route('/test/<test_f>')
-def test(test_f):
-	return render_template('test.html',test_f=test_f)
+@app.route('/test')
+def test():
+	return render_template('test.html')

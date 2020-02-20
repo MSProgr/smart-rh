@@ -20,8 +20,10 @@ class User(db.Model,UserMixin):
 	identifiant = db.Column(db.String(120),nullable=False,unique=True)
 	password = db.Column(db.String(60),nullable=False,default=bcrypt.generate_password_hash('123456').decode('utf-8'))
 	matricule_sup = db.Column(db.Integer)
+	profile = db.Column(db.String(20),nullable=False,default="simple")
 	demandeMobileTemp = db.relationship('DemandeMobileTemp',backref='author',lazy=True)
 	demandeMobilePerm = db.relationship('DemandeMobilePerm',backref='author',lazy=True)
+
 
 
 class Parc(db.Model):
@@ -69,4 +71,3 @@ class Agence(db.Model):
 	id = db.Column(db.Integer,unique=True,nullable=False,primary_key=True)
 	nom = db.Column(db.String(120),unique=True,nullable=False)
 	email = db.Column(db.String(120))
-

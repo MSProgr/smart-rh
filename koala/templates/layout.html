@@ -22,6 +22,9 @@
           <li class="nav-item active">
             <a class="nav-link text-light" href="{{url_for('logout')}}">Se déconnecter <span class="sr-only">(current)</span></a>
           </li>
+          <li class="nav-item active">
+            <a class="nav-link text-light" href="{{url_for('admin.index')}}">Espace Admin <span class="sr-only">(current)</span></a>
+          </li>
         {% else %}
         {% endif %}
       </ul>

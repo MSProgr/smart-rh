@@ -23,104 +23,100 @@
 		</ol>
 	</nav>
 	<hr class='bg-warning'>
-	<h3>Voir mes demandes</h3>
+	<h3 class="text-center text-muted ">A Propos de mes demandes</h3>
+	<div class="row">
+		<div class="col-md-12">
+			<fieldset>
+				<legend>Ligne D'exploitation mobile permanent</legend>
+				<table class="table table-striped table-default">
+					<thead class="thead-dark">
+						<tr>
+							<th scope="col">Nom Projet</th>
+							<th scope="col">Nombre de Puces</th>
+							<th scope="col">Pilote</th>
+							<th scope="col">Date de la Demande</th>
+							<th scope="col">Etat de la Demande</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for ligne in dmp.items %}
+						<tr>
+							<th scope="row">{{ligne.nom_projet}}</th>
+							<td>{{ligne.puces}}</td>
+							<td>{{ligne.pilote}}</td>
+							<td>{{ligne.date_demande}}</td>
+							<td>{{ligne.etat_demande}}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% for page_num in dmp.iter_pages() %}
+				{% if page_num %}
+				{% if dmp.page == page_num %}
+				<a class="btn" style="background-color: #449d44;color: #fff;border-color: #398439;" 
+				href="{{url_for('demande',perm_page=page_num)}}">{{page_num}}</a>
+				{% else %}
+				<a class="btn"  href="{{url_for('demande',perm_page=page_num)}}">{{page_num}}</a>
+				{% endif %}
+				{% else %}
+				...
+				{% endif %}
+				{% endfor %}
+			</fieldset>
+		</div>
+		<div class="col-md-12">
+			<fieldset>
+				<legend>Ligne d'exploitation mobile temporaire</legend>
+				<table class="table table-striped table-default">
+					<thead class="thead-dark">
+						<tr>
+							<th scope="col">Nom Projet</th>
+							<th scope="col">Nombre de Puces</th>
+							<th scope="col">Pilote</th>
+							<th scope="col">Date de la Demande</th>
+							<th scope="col">Etat de la Demande</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for ligne in dmt.items %}
+						<tr>
+							<th scope="row">{{ligne.nom_projet}}</th>
+							<td>{{ligne.puces}}</td>
+							<td>{{ligne.pilote}}</td>
+							<td>{{ligne.date_demande}}</td>
+							<td>{{ligne.etat_demande}}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% for page_num in dmt.iter_pages() %}
+				{% if page_num %}
+				{% if dmt.page == page_num %}
+				<a class="btn" style="background-color: #449d44;color: #fff;border-color: #398439;" 
+				href="{{url_for('demande',temp_page=page_num)}}">{{page_num}}</a>
+				{% else %}
+				<a class="btn"  href="{{url_for('demande',temp_page=page_num)}}">{{page_num}}</a>
+				{% endif %}
+				{% else %}
+				...
+				{% endif %}
+				{% endfor %}
+			</fieldset>
+		</div>
+	</div>
 
-	<!-- Button trigger modal -->
-	<button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#modalperm">
-		Ligne Mobile Permanent
-	</button>
-	<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#modaltemp">
-		Ligne Mobile Temporaire
-	</button>
-	<button type="button" class="btn btn-outline-warning" data-toggle="modal" data-target="#modaltemp">
-		Ligne Fixe Permanent
-	</button>
-	<button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#modaltemp">
-		Ligne Fixe Temporaire
-	</button>
-	<hr class='bg-warning'>
+	<hr class="bg-secondary">
 
-
-	<!-- Modal -->
-	<div class="modal fade" id="modalperm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-lg" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalLabel">Demande de ligne d'exploitation Mobile Permanent</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<table class="table table-striped table-default">
-						<thead class="thead-dark">
-							<tr>
-								<th scope="col">Nom Projet</th>
-								<th scope="col">Nombre de Puces</th>
-								<th scope="col">Pilote</th>
-								<th scope="col">Date de la Demande</th>
-								<th scope="col">Etat de la Demande</th>
-							</tr>
-						</thead>
-						<tbody>
-							{% for ligne in dmp %}
-							<tr>
-								<th scope="row">{{ligne.nom_projet}}</th>
-								<td>{{ligne.puces}}</td>
-								<td>{{ligne.pilote}}</td>
-								<td>{{ligne.date_demande}}</td>
-								<td>{{ligne.etat_demande}}</td>
-							</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" data-dismiss="modal">Fermer</button>
-				</div>
-			</div>
+	<div class="row">
+		<div class="col-md-6">
+			
+		</div>
+		<div class="col-md-6">
+			
 		</div>
 	</div>
 
 
-	<div class="modal fade" id="modaltemp" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-lg" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalLabel">Demande de lignes d'exploitation Mobile temporaire</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<table class="table table-striped table-default">
-						<thead class="thead-dark">
-							<tr>
-								<th scope="col">Nom Projet</th>
-								<th scope="col">Nombre de Puces</th>
-								<th scope="col">Pilote</th>
-								<th scope="col">Date de la Demande</th>
-								<th scope="col">Etat de la Demande</th>
-							</tr>
-						</thead>
-						<tbody>
-							{% for ligne in dmt %}
-							<tr>
-								<th scope="row">{{ligne.nom_projet}}</th>
-								<td>{{ligne.puces}}</td>
-								<td>{{ligne.pilote}}</td>
-								<td>{{ligne.date_demande}}</td>
-								<td>{{ligne.etat_demande}}</td>
-							</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" data-dismiss="modal">Fermer</button>
-				</div>
-			</div>
-		</div>
-	</div>
+
 </div>
 {% endblock content %}
