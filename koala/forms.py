@@ -41,3 +41,11 @@ class MobilePermanentForm(FlaskForm):
 class FacturationMobileForm(FlaskForm):
 	facturation = FileField("Fichier de Facturation",validators=[FileRequired(),FileAllowed(["xlsx","xls"])])
 	submit = SubmitField("Ajouter")
+
+
+class ModifierNumero(FlaskForm):
+	etat_abs = StringField("ETAT ABS")
+	gamme_offre = StringField('Gamme Offre')
+	gamme_offre_fbi = StringField('Gamme Offre FBI')
+	gamme_offre_forfait_internet = StringField('Gamme Offre Forfait internet')
+	submit = SubmitField("Soumettre les mofifications")

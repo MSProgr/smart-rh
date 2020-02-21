@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+	<div class="col-md-12">
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title">Informations sur le numéro {{ligne['NUMERO MSISDN']}}</h5>
+				<p class="card-text">ETAT ABS : {{ligne["ETAT_ABS"]}}</p>
+				<p class="card-text">GAMME OFFRE : {{ligne["GAMME OFFRE"]}}</p>
+				<p class="card-text">GAMME OFFRE FBI : {{ligne["GAMME OFFRE FBI"]}}</p>
+				<p class="card-text">GAMME OFFRE FORFAIT INTERNET : {{ligne["GAMME OFFRE FORFAIT INTERNET"]}}</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-12">
+		<div class="card">
+			<div class="card-body">
+				<form method="POST" action="">
+					{{ form.hidden_tag()}}
+					<fieldset class="form-group">
+						<legend> numéro de la ligne : {{ligne['NUMERO MSISDN']}}</legend>
+						<div class="input-group"  style="margin-bottom: 5px;">
+							{% if form.etat_abs.errors %}
+							{{form.etat_abs(class="form-control form-control-lg is-invalid selectpicker")}}
+							<div class="text-feedback">
+								{% for error in form.etat_abs.errors %}
+								<span class="text-danger">{{error}}</span>
+								{% endfor %}
+							</div>
+							{% else %}
+							{{form.etat_abs(class="form-control form-control-lg selectpicker",placeholder=form.etat_abs.label.text)}}
+							{% endif %}
+						</div>
+						<div class="input-group"  style="margin-bottom: 5px;">
+							{% if form.gamme_offre.errors %}
+							{{form.gamme_offre(class="form-control form-control-lg is-invalid")}}
+							<div class="text-feedback">
+								{% for error in form.gamme_offre.errors %}
+								<span class="text-danger">{{error}}</span>
+								{% endfor %}
+							</div>
+							{% else %}
+							{{form.gamme_offre(class="form-control form-control-lg",placeholder=form.gamme_offre.label.text)}}
+							{% endif %}
+						</div>
+						<div class="input-group"  style="margin-bottom: 5px;">
+							{% if form.gamme_offre_fbi.errors %}
+							{{form.gamme_offre_fbi(class="form-control form-control-lg is-invalid")}}
+							<div class="text-feedback">
+								{% for error in form.gamme_offre_fbi.errors %}
+								<span class="text-danger">{{error}}</span>
+								{% endfor %}
+							</div>
+							{% else %}
+							{{form.gamme_offre_fbi(class="form-control form-control-lg",placeholder=form.gamme_offre_fbi.label.text)}}
+							{% endif %}
+						</div>
+						<div class="input-group"  style="margin-bottom: 5px;">
+							{% if form.gamme_offre_forfait_internet.errors %}
+							{{form.gamme_offre_forfait_internet(class="form-control form-control-lg is-invalid")}}
+							<div class="text-feedback">
+								{% for error in form.gamme_offre_forfait_internet.errors %}
+								<span class="text-danger">{{error}}</span>
+								{% endfor %}
+							</div>
+							{% else %}
+							{{form.gamme_offre_forfait_internet(class="form-control form-control-lg",placeholder=form.gamme_offre_forfait_internet.label.text)}}
+							{% endif %}
+						</div>
+						<div class="form-group">
+							{{form.submit(class="btn btn-outline-warning")}}
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock content %}

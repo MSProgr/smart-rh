@@ -3,14 +3,14 @@ from flask_login import login_user,logout_user,current_user,login_required
 
 from koala import app,db,bcrypt,mail
 
-from koala.forms import LoginForm,MobileTemporaireForm,MobilePermanentForm,FacturationMobileForm
+from koala.forms import LoginForm,MobileTemporaireForm,MobilePermanentForm,FacturationMobileForm,ModifierNumero
 
 from flask_mail import Message
 
 from koala.models import User,Offre,Parc,DemandeMobileTemp,DemandeMobilePerm,Agence
 
 from koala.config import load_offre,groupe_choices,load_parc,send_email_to_user,is_chef_Sce,get_n_1,\
-send_mail_to_n_1,serializer,is_chef_dep
+send_mail_to_n_1,serializer,is_chef_dep,fichier_centale
 
 from koala.config import get_add_and_send_email_from_form,send_notification_email_after_n_1_decision,tmp,perm,get_demande
 
@@ -157,11 +157,9 @@ def demande():
 	temp_page = request.args.get("temp_page", default=1, type=int)
 	perm_page = request.args.get("perm_page", default=1, type=int)
 
-	t_d = request.args.get("t_d",default="all_demande")
-	dmt,dmp = None,None
 	dmt = DemandeMobileTemp.query.filter_by(author=current_user).order_by(DemandeMobileTemp.id.desc()).paginate(page=temp_page,per_page=2)
 	dmp = DemandeMobilePerm.query.filter_by(author=current_user).order_by(DemandeMobilePerm.id.desc()).paginate(page=perm_page,per_page=2)
-	return render_template('demande.html',dmt=dmt,dmp=dmp,t_d=t_d)
+	return render_template('demande.html',dmt=dmt,dmp=dmp)
 
 
 
@@ -208,13 +206,29 @@ def ajout_facturation():
 	if form.validate_on_submit():
 		file = request.files.get('facturation')
 		df = pd.read_excel(file)
-		centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers/demande_mobile_centrale.xlsx"))
+		centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
 		new_centrale = pd.merge(centrale,df,on="NUMERO MSISDN",how="outer")
-		new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers/demande_mobile_centrale.xlsx"),index=False)
+		new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale),index=False)
 		return redirect(url_for("admin.index"))
 	return render_template("facturation.html",form=form)
 
 
+@app.route("/modifier_numero",methods=["POST"])
+def modifier_numero():
+	form = ModifierNumero()
+	
+	df = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
+	
+	if form.validate_on_submit():
+		return redirect(url_for('demande'))
+	else:
+		numero = int(request.form.get("numero"))
+		ligne = df[df['NUMERO MSISDN'] == numero]
+		if ligne.shape[0] == 0:
+			flash("Le numero spécifier est introuvable! Veuillez contactez l'administrateur pour plus d'informations","warning")
+			return redirect(url_for('demande'))
+		else:
+			return render_template("modification_ligne.html",ligne=ligne.to_dict('records')[0],form=form)
 
 
 @app.route('/logout')
@@ -222,8 +236,3 @@ def ajout_facturation():
 def logout():
 	logout_user()
 	return redirect(url_for('index'))
-
-
-@app.route('/test')
-def test():
-	return render_template('test.html')
