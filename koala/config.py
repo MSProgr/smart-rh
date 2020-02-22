@@ -2,7 +2,7 @@ from flask import request,session,redirect,url_for,flash
 from flask_login import current_user
 from flask_mail import Message
 from koala import db,babel,mail,app
-from koala.models import Offre,User,Parc,DemandeMobileTemp,DemandeMobilePerm
+from koala.models import Offre,User,Parc,DemandeMobileTemp,DemandeMobilePerm,FacturationMobile
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_admin import AdminIndexView
@@ -414,6 +414,21 @@ class DemandeMobilePermView(ModelView):
 
 
 class AgenceView(ModelView):
+	form_base_class = SecureForm
+	page_size = 20
+	create_modal = True
+	edit_modal = True
+	can_export = True
+	export_types = ['csv']
+	def is_accessible(self):
+		return (current_user.is_authenticated and ("admin" in current_user.profile))
+
+	def inaccessible_callback(self,name,**kwargs):
+		flash("Vous n'étes pas autorisez à accéder à cette page","danger")
+		return redirect(url_for('index'))
+
+
+class FacturationMobileView(ModelView):
 	form_base_class = SecureForm
 	page_size = 20
 	create_modal = True

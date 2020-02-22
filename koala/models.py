@@ -71,3 +71,9 @@ class Agence(db.Model):
 	id = db.Column(db.Integer,unique=True,nullable=False,primary_key=True)
 	nom = db.Column(db.String(120),unique=True,nullable=False)
 	email = db.Column(db.String(120))
+
+class FacturationMobile(db.Model):
+	id = db.Column(db.Integer,unique=True,nullable=False,primary_key=True)
+	mois = db.Column(db.String(20),nullable=False)
+	nbr_puces = db.Column(db.Integer,nullable=False)
+	total_mois = db.Column(db.Integer,nullable=False)

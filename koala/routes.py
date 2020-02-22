@@ -7,7 +7,7 @@ from koala.forms import LoginForm,MobileTemporaireForm,MobilePermanentForm,Factu
 
 from flask_mail import Message
 
-from koala.models import User,Offre,Parc,DemandeMobileTemp,DemandeMobilePerm,Agence
+from koala.models import User,Offre,Parc,DemandeMobileTemp,DemandeMobilePerm,Agence,FacturationMobile
 
 from koala.config import load_offre,groupe_choices,load_parc,send_email_to_user,is_chef_Sce,get_n_1,\
 send_mail_to_n_1,serializer,is_chef_dep,fichier_centale
@@ -20,6 +20,8 @@ from koala.config import send_notification_to_agence_after_n_1_validation,for_us
 import os
 from datetime import datetime
 import pandas as pd
+
+
 
 
 #cette méthode est appelé quand le n+1 click sur le line qui lui est envoyer pour prendre une décision sur la demande
@@ -38,6 +40,8 @@ def validating_demande(token):
 	demande = get_demande(type_demande,num_demande)
 
 	return render_template('decision.html',demande=demande,type_demande=type_demande)
+
+
 
 
 #Cettes méthode est appelé une fois que le n+1 à cliquez sur une decision
@@ -65,6 +69,8 @@ def decision_sup(demande_id,user_matricule,type_demande,decision):
 	return redirect(url_for('index'))
 
 
+
+
 #cette méthode redigire l'agence aprés click sur le line pour qu'il prennne sa decision sur la demande
 @app.route('/validating_agence/<token>')
 def validating_agence(token):
@@ -81,6 +87,7 @@ def validating_agence(token):
 	demande = get_demande(type_demande,demande_id)
 
 	return render_template('decision_agence.html',demande=demande,type_demande=type_demande)
+
 
 
 
@@ -116,6 +123,8 @@ def decision_age(demande_id,user_matricule,type_demande,decision):
 	flash("Un email de notification a été envoyer à l'agent demandeur! Merci","warning")
 	return redirect(url_for('index'))
 
+
+
 #cette méthode est appelé pour  consulter la demande aprés la decision de l'agence: on y accéde en cliquant sur le lien envoyé par mail
 @app.route('/after_decision_agence/<demande_id>/<demande_type>')
 def info_demande(demande_id,demande_type):
@@ -126,6 +135,8 @@ def info_demande(demande_id,demande_type):
 		return redirect(url_for('index'))
 
 	return render_template('view_agence_decision.html',demande=demande,type_demande=demande_type)
+
+
 
 
 
@@ -151,6 +162,8 @@ def index():
 
 
 
+
+
 @app.route("/demande",methods=['GET','POST'])
 @login_required
 def demande():
@@ -163,7 +176,9 @@ def demande():
 
 
 
+
 @app.route("/mobile_temporaire",methods=['GET','POST'])
+@login_required
 def mobile_temporaire():
 	form = MobileTemporaireForm()
 	if form.validate_on_submit():
@@ -182,7 +197,9 @@ def mobile_temporaire():
 
 
 
+
 @app.route("/mobile_permanent",methods=['GET','POST'])
+@login_required
 def mobile_permanent():
 	form = MobilePermanentForm()
 	if form.validate_on_submit():
@@ -200,7 +217,9 @@ def mobile_permanent():
 	return render_template('mobile_permanent.html',form=form)
 
 
+
 @app.route("/ajout_facturation",methods=['GET','POST'])
+@login_required
 def ajout_facturation():
 	form = FacturationMobileForm()
 	if form.validate_on_submit():
@@ -208,18 +227,24 @@ def ajout_facturation():
 		df = pd.read_excel(file)
 		centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
 		new_centrale = pd.merge(centrale,df,on="NUMERO MSISDN",how="outer")
+		f_mobile = FacturationMobile(mois=df.columns[1],total_mois=int(df[df.columns[1]].sum()),nbr_puces=df.shape[0])
+		db.session.add(f_mobile)
+		db.session.commit()
 		new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale),index=False)
 		return redirect(url_for("admin.index"))
 	return render_template("facturation.html",form=form)
 
 
+
 @app.route("/modifier_numero",methods=["POST"])
+@login_required
 def modifier_numero():
 	form = ModifierNumero()
 	
 	df = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
 	
 	if form.validate_on_submit():
+		
 		return redirect(url_for('demande'))
 	else:
 		numero = int(request.form.get("numero"))
@@ -229,6 +254,30 @@ def modifier_numero():
 			return redirect(url_for('demande'))
 		else:
 			return render_template("modification_ligne.html",ligne=ligne.to_dict('records')[0],form=form)
+
+
+
+@app.route("/reporting_demande")
+@login_required
+def reporting_demande():
+	if "admin" not in current_user.profile:
+		flash("Impossible d'accéder à cette page","danger")
+		return redirect(url_for("demande"))
+	else:
+		return render_template("reporting_demande.html")
+
+
+
+
+@app.route("/tableau_suivi_mobile")
+@login_required
+def tableau_suivi_mobile():
+	#il reste à lire le dataframe et chargé le reste en mm temps dans la mm page (GFU ...)
+	tableau = FacturationMobile.query.all()
+	return render_template("tableau_suivi_mobile.html",tableau=tableau)
+
+
+
 
 
 @app.route('/logout')

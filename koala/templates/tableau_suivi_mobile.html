@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="col-md-7 col-sm-7 col-xs-12">
+	<h3> Suivi du Parc des Lignes D'exploitation Mobiles </h3>
+	<div class="row">
+		<div class="col-md-12">
+			<fieldset>
+				<legend>Tableau Récaputilatif</legend>
+				<table class="table table-striped table-default">
+					<thead class="thead-dark">
+						<tr>
+							<th scope="col">Période</th>
+							<th scope="col">Nombre de Puces</th>
+							<th scope="col">Total Consommé</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for rec in tableau %}
+						<tr>
+							<th scope="row">{{rec.mois}}</th>
+							<td>{{rec.nbr_puces}}</td>
+							<td>{{rec.total_mois}}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+	</div>
+</div>
+{% endblock content %}

@@ -35,8 +35,9 @@ mail = Mail(app)
 
 
 
-from koala.models import User,Parc,Offre,DemandeMobileTemp,DemandeMobilePerm,Agence
-from koala.config import UserView, DemandeMobileTempView,DemandeMobilePermView,ParcView,OffreView,MyAdminIndexView,AgenceView
+from koala.models import User,Parc,Offre,DemandeMobileTemp,DemandeMobilePerm,Agence,FacturationMobile
+from koala.config import UserView, DemandeMobileTempView,DemandeMobilePermView,ParcView,OffreView,MyAdminIndexView,AgenceView,\
+	FacturationMobileView
 
 admin = Admin(app, name="DRH",index_view=MyAdminIndexView())
 
@@ -46,6 +47,7 @@ admin.add_view(ParcView(Parc, db.session))
 admin.add_view(OffreView(Offre, db.session))
 admin.add_view(DemandeMobileTempView(DemandeMobileTemp, db.session))
 admin.add_view(DemandeMobilePermView(DemandeMobilePerm, db.session))
+admin.add_view(FacturationMobileView(FacturationMobile, db.session))
 admin.add_view(AgenceView(Agence, db.session))
 
 path = os.path.join(os.path.dirname(__file__), 'static/fichiers/')
