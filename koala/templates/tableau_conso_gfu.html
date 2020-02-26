@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="col-md-7 col-sm-7 col-xs-12">
+	<h3>Suivi consommation GFU et parc lignes d’exploitation agents</h3>
+	<div class='row'>
+		<div class="col-md-12">
+			<fieldset>
+				<legend><span class="badge bg-warning">Source</span> Fichier Centrale</legend>
+				{{ table|safe }}
+			</fieldset>
+		</div>
+	</div>
+</div>
+{% endblock content %}

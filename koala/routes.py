@@ -10,7 +10,7 @@ from flask_mail import Message
 from koala.models import User,Offre,Parc,DemandeMobileTemp,DemandeMobilePerm,Agence,FacturationMobile
 
 from koala.config import load_offre,groupe_choices,load_parc,send_email_to_user,is_chef_Sce,get_n_1,\
-send_mail_to_n_1,serializer,is_chef_dep,fichier_centale
+send_mail_to_n_1,serializer,is_chef_dep,fichier_centale,numero_msisdn,centrale_path,col_from
 
 from koala.config import get_add_and_send_email_from_form,send_notification_email_after_n_1_decision,tmp,perm,get_demande
 
@@ -221,16 +221,36 @@ def mobile_permanent():
 @app.route("/ajout_facturation",methods=['GET','POST'])
 @login_required
 def ajout_facturation():
+	if "admin" not in current_user.profile:
+		flash("Impossible d'accéder à cette page","danger")
+		return redirect(url_for("demande"))
 	form = FacturationMobileForm()
 	if form.validate_on_submit():
 		file = request.files.get('facturation')
-		df = pd.read_excel(file)
-		centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
-		new_centrale = pd.merge(centrale,df,on="NUMERO MSISDN",how="outer")
-		f_mobile = FacturationMobile(mois=df.columns[1],total_mois=int(df[df.columns[1]].sum()),nbr_puces=df.shape[0])
+		centrale = pd.read_excel(centrale_path)
+
+		try:
+			df = pd.read_excel(file)
+		except:
+			flash("Veuillez vérifier si le fichier est correct","warning")
+			return redirect(url_for("admin.index"))
+
+		if df.shape[1] != 2:
+			flash("Vérifier le nombre de colonne du fichier.","warning")
+			return redirect(url_for("admin.index"))
+
+		try:
+			new_centrale = centrale.merge(df,on=numero_msisdn,how="left")
+		except:
+			flash("La premiére colonne doit correspondre aux numéros et la deuxiéme à la consommation","primary")
+			return redirect(url_for("admin.index"))
+
+		f_mobile = FacturationMobile(mois=df.columns[1],total_mois=int(df[df.columns[1]].sum()),nbr_puces=int(df.shape[0]))
 		db.session.add(f_mobile)
 		db.session.commit()
-		new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale),index=False)
+		new_centrale.to_excel(centrale_path,index=False)
+		df.to_excel(os.path.join(app.root_path,"static/fichiers/facturation",str(df.columns[1])+".xlsx"),index=False)
+		flash("Fichier de facturation du mois de {} ajouté avec succes".format(str(df.columns[0])),"success")
 		return redirect(url_for("admin.index"))
 	return render_template("facturation.html",form=form)
 
@@ -241,14 +261,14 @@ def ajout_facturation():
 def modifier_numero():
 	form = ModifierNumero()
 	
-	df = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
+	df = pd.read_excel(centrale_path)
 	
 	if form.validate_on_submit():
 		
 		return redirect(url_for('demande'))
 	else:
 		numero = int(request.form.get("numero"))
-		ligne = df[df['NUMERO MSISDN'] == numero]
+		ligne = df[df[numero_msisdn] == numero]
 		if ligne.shape[0] == 0:
 			flash("Le numero spécifier est introuvable! Veuillez contactez l'administrateur pour plus d'informations","warning")
 			return redirect(url_for('demande'))
@@ -272,9 +292,26 @@ def reporting_demande():
 @app.route("/tableau_suivi_mobile")
 @login_required
 def tableau_suivi_mobile():
-	#il reste à lire le dataframe et chargé le reste en mm temps dans la mm page (GFU ...)
+	if "admin" not in current_user.profile:
+		flash("Impossible d'accéder à cette page","danger")
+		return redirect(url_for("demande"))
 	tableau = FacturationMobile.query.all()
 	return render_template("tableau_suivi_mobile.html",tableau=tableau)
+
+
+@app.route("/tableau_conso_gfu")
+@login_required
+def tableau_conso_gfu():
+	if "admin" not in current_user.profile:
+		flash("Impossible d'accéder à cette page","danger")
+		return redirect(url_for("demande"))
+	df = pd.read_excel(centrale_path)
+	dataset = df.loc[:,col_from:]
+	tab1 = dataset.groupby(col_from).sum().reset_index()
+	tab2 = dataset.groupby(col_from).count().reset_index()
+	tab = (tab1.merge(tab2,on=col_from,suffixes=('_total', '_nbr_puces'))).T
+	return render_template("tableau_conso_gfu.html",
+		table=tab.to_html(header=False,classes=["table table-striped table-default table-hover"]))
 
 
 

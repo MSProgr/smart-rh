@@ -33,6 +33,12 @@ perm = 'Permanent'
 
 fichier_centale = "demande_mobile_centrale.xlsx"
 
+centrale_path = os.path.join(app.root_path,"static/fichiers",fichier_centale)
+
+numero_msisdn = "NUMERO MSISDN"
+
+col_from = "type de parc"
+
 
 #retourne le message qu'on envoie à l'agent une fois qu'il à fait une demande
 def send_mail(type_demande,numero,nbr_puces,date_demande):
@@ -216,7 +222,7 @@ def get_add_and_send_email_from_form(form_type,form):
 
 
 def append_in_centrale(model,df,type_dem):
-	centrale = pd.read_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale))
+	centrale = pd.read_excel(centrale_path)
 	df['type de parc'] = Parc.query.get(model.parc_id).nom_parc
 	df['nom et prenom pilote ou utilisateur'] = model.pilote
 	df['Code Structure'] = model.author.code_structure
@@ -227,7 +233,7 @@ def append_in_centrale(model,df,type_dem):
 	else:
 		df['date de fin projet'] = ""
 	new_centrale = pd.concat([centrale,df],ignore_index=True)
-	new_centrale.to_excel(os.path.join(app.root_path,"static/fichiers",fichier_centale),index=False)
+	new_centrale.to_excel(centrale_path,index=False)
 				
 
 
@@ -431,8 +437,11 @@ class AgenceView(ModelView):
 class FacturationMobileView(ModelView):
 	form_base_class = SecureForm
 	page_size = 20
-	create_modal = True
-	edit_modal = True
+	create_modal = False
+	edit_modal = False
+	can_create = False
+	can_edit = False
+	can_view_details = True
 	can_export = True
 	export_types = ['csv']
 	def is_accessible(self):
